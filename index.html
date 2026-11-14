@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Список задач</title>
+  <meta name="description" content="Список задач со сроками: добавить, отметить, удалить, поменять порядок. Всё сохраняется в браузере.">
+  <meta name="theme-color" content="#f3f4f6">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2317191d'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11' fill='none' stroke='%23f3f4f6' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M14.5 5.5l4 4M4 20l1-5L15.5 4.5a1.4 1.4 0 0 1 2 0l2 2a1.4 1.4 0 0 1 0 2L9 19z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+    <symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.3"/><circle cx="15" cy="6" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="9" cy="18" r="1.3"/><circle cx="15" cy="18" r="1.3"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 24 24"><path d="M7 4v16M3.5 16.5L7 20l3.5-3.5M13 6h8M13 11h6M13 16h4"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></symbol>
+  </svg>
+
+  <main class="sheet">
+    <header class="head">
+      <h1 class="date" id="date">Список задач</h1>
+      <p class="summary" id="summary" aria-live="polite"></p>
+      <div class="week" id="week" role="group" aria-label="Ближайшие 7 дней. Нажмите на день, чтобы увидеть его задачи"></div>
+    </header>
+
+    <form class="add" id="add-form" autocomplete="off">
+      <label for="new-task" class="visually-hidden">Новая задача</label>
+      <input id="new-task" name="task" class="add-input" type="text" maxlength="200" placeholder="Что нужно сделать?" enterkeyhint="done">
+
+      <div class="due-pick" id="new-due-wrap">
+        <button type="button" class="due-btn" id="new-due-btn" aria-label="Выбрать срок" aria-haspopup="dialog" aria-expanded="false">
+          <svg class="icon" aria-hidden="true"><use href="#i-cal"/></svg>
+          <span class="due-btn-label" id="new-due-label"></span>
+        </button>
+        <button type="button" class="due-btn time-btn" id="new-time-btn" aria-label="Выбрать время" aria-haspopup="dialog" aria-expanded="false">
+          <svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>
+          <span class="due-btn-label" id="new-time-label"></span>
+        </button>
+        <button type="button" class="due-clear" id="new-due-clear" aria-label="Убрать срок" hidden>
+          <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
+        </button>
+      </div>
+
+      <button class="add-btn" type="submit" id="add-btn" disabled>
+        <svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>
+        <span>Добавить</span>
+      </button>
+    </form>
+
+    <nav class="filters" aria-label="Фильтр задач">
+      <button type="button" class="filter" data-filter="all" aria-pressed="true">Все <span class="num" data-count="all"></span></button>
+      <button type="button" class="filter" data-filter="active" aria-pressed="false">В работе <span class="num" data-count="active"></span></button>
+      <button type="button" class="filter" data-filter="done" aria-pressed="false">Готово <span class="num" data-count="done"></span></button>
+      <div class="tools">
+        <button type="button" class="day-chip" id="day-chip" hidden>
+          <span id="day-chip-text"></span>
+          <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
+        </button>
+        <button type="button" class="sort" id="sort-btn" aria-pressed="false" aria-label="Сортировать по сроку">
+          <svg class="icon" aria-hidden="true"><use href="#i-sort"/></svg>
+          <span>По сроку</span>
+        </button>
+      </div>
+    </nav>
+
+    <ul class="list" id="list"></ul>
+    <p class="empty" id="empty" hidden></p>
+
+    <footer class="foot">
+      <p class="hint">Тяните за точки слева, чтобы поменять порядок. Двойной клик по задаче меняет текст и срок.</p>
+      <button type="button" class="clear" id="clear-done" hidden>Убрать выполненные</button>
+    </footer>
+  </main>
+
+  <div class="picker" id="picker" role="dialog" aria-label="Выбор даты" hidden></div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+    <span class="toast-text" id="toast-text"></span>
+    <button type="button" class="toast-undo" id="toast-undo">Вернуть</button>
+  </div>
+
+  <template id="task-tpl">
+    <li class="task">
+      <button type="button" class="grip" aria-label="Переместить задачу. Стрелки вверх и вниз меняют порядок">
+        <svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg>
+      </button>
+      <label class="check">
+        <input type="checkbox" class="check-input">
+        <span class="check-box" aria-hidden="true"><svg class="icon"><use href="#i-check"/></svg></span>
+      </label>
+      <div class="body">
+        <div class="line">
+          <span class="text"></span>
+          <svg class="strike" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><path d="M1 6.2 C 14 3.8, 26 7.6, 40 5.4 S 66 3.6, 80 5.8 S 94 6.6, 99 4.6"/></svg>
+        </div>
+        <span class="due" hidden></span>
+      </div>
+      <button type="button" class="icon-btn edit" aria-label="Изменить задачу"><svg class="icon" aria-hidden="true"><use href="#i-pen"/></svg></button>
+      <button type="button" class="icon-btn del" aria-label="Удалить задачу"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button>
+    </li>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
